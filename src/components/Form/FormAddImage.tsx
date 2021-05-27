@@ -1,5 +1,5 @@
 import { Box, Button, Stack, useToast } from '@chakra-ui/react';
-import { useForm } from 'react-hook-form';
+import { RegisterOptions, useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 
@@ -23,23 +23,47 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
   const [localImageUrl, setLocalImageUrl] = useState('');
   const toast = useToast();
 
-  const formValidations = {
+  const formValidations: Record<string, RegisterOptions> = {
     image: {
-      // TODO REQUIRED, LESS THAN 10 MB AND ACCEPTED FORMATS VALIDATIONS
       required: 'Arquivo obrigatório',
+      validate: {
+        lessThan10MB: (files: File[]) => {
+          const [firstFile] = files;
+          return (
+            firstFile?.size <= 10000000 || 'O arquivo deve ser menor que 10MB'
+          );
+        },
+        acceptedFormats: (files: File[]) => {
+          const [firstFile] = files;
+          if (!firstFile?.type)
+            return 'Somente são aceitos arquivos PNG, JPEG e GIF';
+
+          return (
+            firstFile?.type.match(
+              /([a-zA-Z0-9\s_\\.\-:])+(.png|.jpg|.jpeg)$/i
+            ) || 'Somente são aceitos arquivos PNG, JPEG e GIF'
+          );
+        },
+        messages: () => ['image'],
+      },
     },
     title: {
-      // TODO REQUIRED, MIN AND MAX LENGTH VALIDATIONS
       required: 'Título obrigatório',
-      minLength: 2,
-      min: 'Mínimo de 2 caracteres',
-      maxLength: 20,
-      max: 'Máximo de 20 caracteres',
+      minLength: {
+        value: 2,
+        message: 'Mínimo de 2 caracteres',
+      },
+      maxLength: {
+        value: 20,
+        message: 'Máximo de 20 caracteres',
+      },
     },
     description: {
-      // TODO REQUIRED, MAX LENGTH VALIDATIONS
       required: 'Descrição obrigatória',
-      maxLength: 65,
+      maxLength: {
+        value: 65,
+        message: 'Máximo de 65 caracteres',
+      },
     },
   };
 
@@ -94,8 +118,6 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
       closeModal();
     }
   };
-
-  console.log(errors);
 
   return (
     <Box as="form" width="100%" onSubmit={handleSubmit(onSubmit)}>

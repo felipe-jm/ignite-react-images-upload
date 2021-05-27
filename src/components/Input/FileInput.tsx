@@ -217,6 +217,7 @@ const FileInputBase: ForwardRefRenderFunction<
           onChange={handleImageUpload}
           ref={ref}
           type="file"
+          accept="image/*"
           style={{
             display: 'none',
           }}
